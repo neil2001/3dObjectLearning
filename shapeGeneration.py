@@ -63,7 +63,7 @@ def generateCone(radius, height, x, y, z, baseN = 100, coneN = 200, toPrint = Fa
     np.random.shuffle(points)
     return points
   
-def generateShapeDataset(samples=1000, points=500):
+def generateShapeDataset(samples=2000, points=500):
     data = []
     for i in range(samples//2):
         newSphere = generateSphere(np.random.uniform(1, 50), 0,0,0, n=500)

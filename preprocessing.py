@@ -27,7 +27,7 @@ class ShapeDataset(Dataset):
 # Applying random rotation and translation
 def normalizeScale(shapeMat):
     minCoord = shapeMat.min(axis=0)
-    shapeMat = (shapeMat - minCoord)/(shapeMat[0].max(axis=0) - minCoord)
+    shapeMat = (shapeMat - minCoord)/(shapeMat.max(axis=0) - minCoord)
     return shapeMat
 
 def randomRotation(shapeMat):
@@ -56,19 +56,24 @@ def randomTranslate(shapeMat):
     return shapeMat
 
 def transform(shapeMat):
+    # translated = randomTranslate(shapeMat)
     rotated = randomRotation(shapeMat)
-    translated = randomTranslate(rotated)
-    normalized = normalizeScale(translated)
+    normalized = normalizeScale(rotated)
+    # normalized = normalizeScale(shapeMat)
+    # print(normalized)
     return normalized
 
 def preprocess(file_loc, batch_size, test_size):
     shapeDataset = pd.read_csv(file_loc, index_col=0)
-    labels = np.array(shapeDataset['0']) # labels
+    numSamples = len(shapeDataset)
+    print("number of samples", numSamples)
+    labels = np.array(shapeDataset['0']).flatten() # labels
     shapeCoords = shapeDataset.drop(columns=['0'])
-    coordsAsNumpy = shapeCoords.to_numpy().reshape((1000,500,3))
+    coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,500,3))
     transformed = np.array(list(map(transform, list(coordsAsNumpy))))
+    # transformed = coordsAsNumpy
     X_train, X_test, Y_train, Y_test = train_test_split(transformed, labels, test_size=test_size, random_state=42)
-    
+    # print(X_train, X_test, Y_train, Y_test)
     # printShape(transformed[505])
 
     dataset_train = ShapeDataset(X_train, Y_train)
