@@ -4,6 +4,25 @@ import numpy as np
 import random
 import math
 
+def generateCube(n=500, toPrint=False):
+#     Choose an axis (x,y,z), a, represented as (0,1,2) at random
+# Choose side, s, either (-0.5 or 0.5) at random
+# Choose three values, coord, between (-0.5 and 0.5)
+# Set coord[a] to s
+# Repeat n times to sample the unit cube centered at 0,0
+
+    points = np.zeros((n,3))
+    for i in range(n):
+        axis = random.randint(0, 2)
+        side = random.choice([-0.5, 0.5])
+        coord = np.random.uniform(-0.5, 0.5, 3)
+        coord[axis] = side
+        points[i] = coord
+    # print(points)
+    np.random.shuffle(points)
+    return points
+
+
 def generateSphere(radius, x, y, z, n=200, toPrint=False):
     points = np.zeros((n, 3))
 
@@ -63,16 +82,20 @@ def generateCone(radius, height, x, y, z, baseN = 100, coneN = 200, toPrint = Fa
     np.random.shuffle(points)
     return points
   
-def generateShapeDataset(samples=2000, points=500):
+def generateShapeDataset(samples=1000, points=500):
     data = []
     for i in range(samples//2):
         newSphere = generateSphere(np.random.uniform(1, 50), 0,0,0, n=500)
         sphereAsRow = [0] + list(newSphere.flatten())
         data.append(sphereAsRow)
+    # for i in range(samples//2):
+    #     newCone = generateCone(np.random.uniform(1, 50), np.random.uniform(5, 80), 0,0,0, baseN=150, coneN = 350)
+    #     coneAsRow = [1] + list(newCone.flatten())
+    #     data.append(coneAsRow)
     for i in range(samples//2):
-        newCone = generateCone(np.random.uniform(1, 50), np.random.uniform(5, 80), 0,0,0, baseN=150, coneN = 350)
-        sphereAsRow = [1] + list(newCone.flatten())
-        data.append(sphereAsRow)
+        newCube = generateCube()
+        cubeAsRow = [1] + list(newCube.flatten())
+        data.append(cubeAsRow)
     df = pd.DataFrame(data)
     return df
 
@@ -83,7 +106,7 @@ def printShape(points):
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.scatter(xLocs, yLocs, zLocs)
-    ax.set_title('Example of a uniformly sampled sphere', fontdict={'fontsize':20})
+    ax.set_title('Example of a uniformly sampled object', fontdict={'fontsize':20})
     fig.savefig('./full_figure.png')
 
 def main():

@@ -56,8 +56,8 @@ def randomTranslate(shapeMat):
     return shapeMat
 
 def transform(shapeMat):
-    # translated = randomTranslate(shapeMat)
-    rotated = randomRotation(shapeMat)
+    translated = randomTranslate(shapeMat)
+    rotated = randomRotation(translated)
     normalized = normalizeScale(rotated)
     # normalized = normalizeScale(shapeMat)
     # print(normalized)
@@ -74,12 +74,12 @@ def preprocess(file_loc, batch_size, test_size):
     # transformed = coordsAsNumpy
     X_train, X_test, Y_train, Y_test = train_test_split(transformed, labels, test_size=test_size, random_state=42)
     # print(X_train, X_test, Y_train, Y_test)
-    # printShape(transformed[505])
+    printShape(transformed[501])
 
     dataset_train = ShapeDataset(X_train, Y_train)
     dataset_test = ShapeDataset(X_test, Y_test)
 
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
-    dataloader_test = DataLoader(dataset_test, batch_size=batch_size, shuffle=False)
+    dataloader_test = DataLoader(dataset_test, batch_size=16, shuffle=False)
 
     return dataloader_train, dataloader_test
