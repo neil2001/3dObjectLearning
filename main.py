@@ -7,18 +7,18 @@ import torch
 from torch import nn, optim
 
 def testNN():
-    batch_size = 16  # batch size
+    batch_size = 256  # batch size
     test_size = 0.2 # test size
     num_epoch = 1 # number of training epochs
     learning_rate = 0.01  # learning rate
 
-    dataloader_train, dataloader_test = preprocess('sphereConeData.csv', batch_size, test_size)
+    dataloader_train, dataloader_test = preprocess('sphereConeCubeData.csv', batch_size, test_size)
 
     print('finished preprocessing')
 
     # model = SimpleNN()
-    model = PointNet()
-    model.train()
+    model = PointNet(num_classes=3)
+    # model.train()
     optimizer = optim.Adam(model.parameters(), lr=0.0001) #optim.SGD(model.parameters(), lr=learning_rate)
     loss_func = nn.CrossEntropyLoss()
     # print("PRETRAIN:", model.parameters())
@@ -33,9 +33,9 @@ def testNN():
     return loss_test
 
 def main():
-    random.seed(0)
-    np.random.seed(0)
-    torch.manual_seed(0)  
+    # random.seed(0)
+    # np.random.seed(0)
+    # torch.manual_seed(0)  
 
     testNN()  
 

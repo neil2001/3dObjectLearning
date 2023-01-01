@@ -82,19 +82,19 @@ def generateCone(radius, height, x, y, z, baseN = 100, coneN = 200, toPrint = Fa
     np.random.shuffle(points)
     return points
   
-def generateShapeDataset(samples=1000, points=500):
+def generateShapeDataset(samples=1000, points=500, num_classes=3):
     data = []
-    for i in range(samples//2):
+    for i in range(samples//num_classes):
         newSphere = generateSphere(np.random.uniform(1, 50), 0,0,0, n=500)
         sphereAsRow = [0] + list(newSphere.flatten())
         data.append(sphereAsRow)
-    # for i in range(samples//2):
-    #     newCone = generateCone(np.random.uniform(1, 50), np.random.uniform(5, 80), 0,0,0, baseN=150, coneN = 350)
-    #     coneAsRow = [1] + list(newCone.flatten())
-    #     data.append(coneAsRow)
-    for i in range(samples//2):
+    for i in range(samples//num_classes):
+        newCone = generateCone(np.random.uniform(1, 50), np.random.uniform(5, 80), 0,0,0, baseN=150, coneN = 350)
+        coneAsRow = [1] + list(newCone.flatten())
+        data.append(coneAsRow)
+    for i in range(samples//num_classes):
         newCube = generateCube()
-        cubeAsRow = [1] + list(newCube.flatten())
+        cubeAsRow = [2] + list(newCube.flatten())
         data.append(cubeAsRow)
     df = pd.DataFrame(data)
     return df
@@ -110,8 +110,8 @@ def printShape(points):
     fig.savefig('./full_figure.png')
 
 def main():
-    shapes = generateShapeDataset()
-    shapes.to_csv('./sphereConeData.csv')
+    shapes = generateShapeDataset(1500,500,3)
+    shapes.to_csv('./sphereConeCubeData.csv')
 
 if __name__ == "__main__":
     main()

@@ -37,7 +37,11 @@ class TNet(nn.Module):
         self.linear2 = nn.Linear(512, 256) # fc linear layer outputting 256
         self.linear3 = nn.Linear(256, self.dim**2) # output a 3x3 matrix!
 
-        self.relu = nn.ReLU()
+        self.relu1 = nn.ReLU()
+        self.relu2 = nn.ReLU()
+        self.relu3 = nn.ReLU()
+        self.relu4 = nn.ReLU()
+        self.relu5 = nn.ReLU()
 
         self.bn64 = nn.BatchNorm1d(64) # nn.LayerNorm((64, 500)) #
         self.bn128 = nn.BatchNorm1d(128) # nn.LayerNorm((128, 500)) #
@@ -52,21 +56,19 @@ class TNet(nn.Module):
 
         x = x.transpose(1,2).float()
 
-        # x = self.relu(self.conv1(x))
-        # x = self.relu(self.conv2(x))
-        # x = self.relu(self.conv3(x))
-        x = F.relu(self.bn64(self.conv1(x)))
-       
-        x = F.relu(self.bn128(self.conv2(x))) 
-        
-        x = F.relu(self.bn1024(self.conv3(x)))
+        # x = self.bn64(F.relu(self.conv1(x)))
+        # x = self.bn128(F.relu(self.conv2(x)))
+        # x = self.bn1024(F.relu(self.conv3(x)))
+        x = self.relu1(self.bn64(self.conv1(x)))
+        x = self.relu2(self.bn128(self.conv2(x))) 
+        x = self.relu3(self.bn1024(self.conv3(x)))
         
         x, _ = torch.max(x, 2)
 
-        # x = self.relu(self.linear1(x))
-        # x = self.relu(self.linear2(x))
-        x = F.relu(self.bn512(self.linear1(x)))
-        x = F.relu(self.bn256(self.linear2(x)))
+        # x = self.bn512(F.relu(self.linear1(x)))
+        # x = self.bn256(F.relu(self.linear2(x)))
+        x = self.relu4(self.bn512(self.linear1(x)))
+        x = self.relu5(self.bn256(self.linear2(x)))
         x = self.linear3(x)
         # print("tnet output size", x.shape)
         nxnID = torch.eye(self.dim).flatten()
@@ -83,11 +85,13 @@ class PointNet(nn.Module):
 
         self.mlp1 = nn.Sequential(
             nn.Conv1d(3,64,1),
-            # nn.BatchNorm1d(64),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(64),
+            nn.ReLU(inplace=False),
+
             nn.Conv1d(64,64,1),
-            # nn.BatchNorm1d(64),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(64),
+            nn.ReLU(inplace=False),
+
         )
 
         # self.conv1 = nn.Conv1d(3,64,1)
@@ -96,27 +100,30 @@ class PointNet(nn.Module):
         # first multilayer perceptron 
         self.mlp2 = nn.Sequential(
             nn.Conv1d(64,64,1),
-            # nn.BatchNorm1d(64),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(64),
+            nn.ReLU(inplace=False),
+
 
             nn.Conv1d(64,128,1),
-            # nn.BatchNorm1d(128),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(128),
+            nn.ReLU(inplace=False),
+
 
             nn.Conv1d(128,1024,1),
-            # nn.BatchNorm1d(1024),
-            nn.ReLU(inplace=True)
+            nn.BatchNorm1d(1024),
+            nn.ReLU(inplace=False),
+
         )
 
         self.mlp3 = nn.Sequential(
             nn.Linear(1024, 512),
-            # nn.BatchNorm1d(512),
-            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(512),
+            nn.ReLU(inplace=False),
 
             nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
             nn.Dropout(p=0.3),
-            # nn.BatchNorm1d(256),
-            nn.ReLU(inplace=True),
+            nn.ReLU(inplace=False),
 
             nn.Linear(256, num_classes)
         )
@@ -144,144 +151,6 @@ class PointNet(nn.Module):
         x = self.mlp3(x)
         x = self.softmax(x)
         return x
-
-# class STN3d(nn.Module):
-#     def __init__(self):
-#         super(STN3d, self).__init__()
-#         self.conv1 = torch.nn.Conv1d(3, 64, 1)
-#         self.conv2 = torch.nn.Conv1d(64, 128, 1)
-#         self.conv3 = torch.nn.Conv1d(128, 1024, 1)
-#         self.fc1 = nn.Linear(1024, 512)
-#         self.fc2 = nn.Linear(512, 256)
-#         self.fc3 = nn.Linear(256, 9)
-#         self.relu = nn.ReLU()
-
-#         self.bn1 = nn.BatchNorm1d(64)
-#         self.bn2 = nn.BatchNorm1d(128)
-#         self.bn3 = nn.BatchNorm1d(1024)
-#         self.bn4 = nn.BatchNorm1d(512)
-#         self.bn5 = nn.BatchNorm1d(256)
-
-
-#     def forward(self, x):
-#         batchsize = x.size()[0]
-#         x = F.relu(self.bn1(self.conv1(x)))
-#         x = F.relu(self.bn2(self.conv2(x)))
-#         x = F.relu(self.bn3(self.conv3(x)))
-#         x = torch.max(x, 2, keepdim=True)[0]
-#         x = x.view(-1, 1024)
-
-#         x = F.relu(self.bn4(self.fc1(x)))
-#         x = F.relu(self.bn5(self.fc2(x)))
-#         x = self.fc3(x)
-
-#         iden = Variable(torch.from_numpy(np.array([1,0,0,0,1,0,0,0,1]).astype(np.float32))).view(1,9).repeat(batchsize,1)
-#         if x.is_cuda:
-#             iden = iden.cuda()
-#         x = x + iden
-#         x = x.view(-1, 3, 3)
-#         return x
-
-
-# class STNkd(nn.Module):
-#     def __init__(self, k=64):
-#         super(STNkd, self).__init__()
-#         self.conv1 = torch.nn.Conv1d(k, 64, 1)
-#         self.conv2 = torch.nn.Conv1d(64, 128, 1)
-#         self.conv3 = torch.nn.Conv1d(128, 1024, 1)
-#         self.fc1 = nn.Linear(1024, 512)
-#         self.fc2 = nn.Linear(512, 256)
-#         self.fc3 = nn.Linear(256, k*k)
-#         self.relu = nn.ReLU()
-
-#         self.bn1 = nn.BatchNorm1d(64)
-#         self.bn2 = nn.BatchNorm1d(128)
-#         self.bn3 = nn.BatchNorm1d(1024)
-#         self.bn4 = nn.BatchNorm1d(512)
-#         self.bn5 = nn.BatchNorm1d(256)
-
-#         self.k = k
-
-#     def forward(self, x):
-#         batchsize = x.size()[0]
-#         x = F.relu(self.bn1(self.conv1(x)))
-#         x = F.relu(self.bn2(self.conv2(x)))
-#         x = F.relu(self.bn3(self.conv3(x)))
-#         x = torch.max(x, 2, keepdim=True)[0]
-#         x = x.view(-1, 1024)
-
-#         x = F.relu(self.bn4(self.fc1(x)))
-#         x = F.relu(self.bn5(self.fc2(x)))
-#         x = self.fc3(x)
-
-#         iden = Variable(torch.from_numpy(np.eye(self.k).flatten().astype(np.float32))).view(1,self.k*self.k).repeat(batchsize,1)
-#         if x.is_cuda:
-#             iden = iden.cuda()
-#         x = x + iden
-#         x = x.view(-1, self.k, self.k)
-#         return x
-
-# class PointNetfeat(nn.Module):
-#     def __init__(self, global_feat = True, feature_transform = False):
-#         super(PointNetfeat, self).__init__()
-#         self.stn = STN3d()
-#         self.conv1 = torch.nn.Conv1d(3, 64, 1)
-#         self.conv2 = torch.nn.Conv1d(64, 128, 1)
-#         self.conv3 = torch.nn.Conv1d(128, 1024, 1)
-#         self.bn1 = nn.BatchNorm1d(64)
-#         self.bn2 = nn.BatchNorm1d(128)
-#         self.bn3 = nn.BatchNorm1d(1024)
-#         self.global_feat = global_feat
-#         self.feature_transform = feature_transform
-#         if self.feature_transform:
-#             self.fstn = STNkd(k=64)
-
-#     def forward(self, x):
-#         n_pts = x.size()[2]
-#         trans = self.stn(x)
-#         x = x.transpose(2, 1)
-#         x = torch.bmm(x, trans)
-#         x = x.transpose(2, 1)
-#         x = F.relu(self.bn1(self.conv1(x)))
-
-#         if self.feature_transform:
-#             trans_feat = self.fstn(x)
-#             x = x.transpose(2,1)
-#             x = torch.bmm(x, trans_feat)
-#             x = x.transpose(2,1)
-#         else:
-#             trans_feat = None
-
-#         pointfeat = x
-#         x = F.relu(self.bn2(self.conv2(x)))
-#         x = self.bn3(self.conv3(x))
-#         x = torch.max(x, 2, keepdim=True)[0]
-#         x = x.view(-1, 1024)
-#         if self.global_feat:
-#             return x, trans, trans_feat
-#         else:
-#             x = x.view(-1, 1024, 1).repeat(1, 1, n_pts)
-#             return torch.cat([x, pointfeat], 1), trans, trans_feat
-
-# class PointNet(nn.Module):
-#     def __init__(self, k=2, feature_transform=False):
-#         super(PointNet, self).__init__()
-#         self.feature_transform = feature_transform
-#         self.feat = PointNetfeat(global_feat=True, feature_transform=feature_transform)
-#         self.fc1 = nn.Linear(1024, 512)
-#         self.fc2 = nn.Linear(512, 256)
-#         self.fc3 = nn.Linear(256, k)
-#         self.dropout = nn.Dropout(p=0.3)
-#         self.bn1 = nn.BatchNorm1d(512)
-#         self.bn2 = nn.BatchNorm1d(256)
-#         self.relu = nn.ReLU()
-
-#     def forward(self, x):
-#         x, trans, trans_feat = self.feat(x)
-#         x = F.relu(self.bn1(self.fc1(x)))
-#         x = F.relu(self.bn2(self.dropout(self.fc2(x))))
-#         x = self.fc3(x)
-#         return F.log_softmax(x, dim=1), trans, trans_feat
 
 def train(model, dataloader, loss_func, optimizer, num_epoch, correct_num_func=None, print_info=True):
     losses = []
@@ -353,13 +222,14 @@ def train(model, dataloader, loss_func, optimizer, num_epoch, correct_num_func=N
 def test(model, dataloader, loss_func, correct_num_func=None):
     loss_sum = 0
     num_correct_preds = 0
+    
+    model.eval()
     for m in model.modules():
         for child in m.children():
             if type(child) == nn.BatchNorm1d:
-                child.track_running_stats = False
+                # child.track_running_stats = False
                 child.running_mean = None
                 child.running_var = None
-    model.eval()
     data_size = len(dataloader.dataset)
     with torch.no_grad(): #don't calculate gradients while testing
         for X,Y in dataloader:
@@ -376,6 +246,27 @@ def test(model, dataloader, loss_func, correct_num_func=None):
     if correct_num_func is None:
         return loss_sum/data_size
     return loss_sum/data_size, num_correct_preds/data_size
+
+def predict(model, x):
+    count = len(x)
+    augment = count < 16
+    out = None
+
+    if augment:
+        inputs = list(x)
+        i = 0
+        while len(inputs) < 16:
+            inputs.append(x[i])
+            i += 1
+        out = model.forward(np.asarray(inputs))
+    else:
+        out = model.forward(X)
+
+    pred_class_nums = torch.argmax(out, dim=1)
+
+    if augment:
+        return pred_class_nums
+    return pred_class_nums[:count]
 
 def num_correct_preds(logit, target, print_info = False):
     pred_class_nums = torch.argmax(logit, dim=1)
