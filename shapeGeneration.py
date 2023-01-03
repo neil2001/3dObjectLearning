@@ -4,6 +4,25 @@ import numpy as np
 import random
 import math
 
+class Ball():
+    def __init__(self, rad, loc, pts=[]):
+        self.radius = rad
+        self.x = loc[0]
+        self.y = loc[1]
+        self.z = loc[2]
+        self.pos = loc
+        self.points = pts
+
+class Box():
+    def __init__(self, l, w, h, pos, pts=[]):
+        self.length = l
+        self.width = w
+        self.height = h
+        self.x = pos[0]
+        self.y = pos[1]
+        self.z = pos[2]
+        self.pos = pos
+        self.points = pts
 
 def generateCube(n=500, toPrint=False):
 #     Choose an axis (x,y,z), a, represented as (0,1,2) at random
@@ -49,7 +68,7 @@ def generateCylinder(radius, height, n=500, baseN = 150):
     return points
 
 
-def generateSphere(radius, x, y, z, n=200, toPrint=False):
+def generateSphere(radius, x=0, y=0, z=0, n=200, toPrint=False):
     points = np.zeros((n, 3))
 
     translation_matrix = [
@@ -82,7 +101,7 @@ def generateSphere(radius, x, y, z, n=200, toPrint=False):
     np.random.shuffle(points)
     return points
 
-def generateCone(radius, height, x, y, z, baseN = 100, coneN = 200, toPrint = False):
+def generateCone(radius, height, x=0, y=0, z=0, baseN = 100, coneN = 200, toPrint = False):
     points = np.zeros((baseN + coneN, 3))
 
     for i in range(baseN):
@@ -125,35 +144,6 @@ def generateShapeDataset(samples=1000, points=500, num_classes=3):
     df = pd.DataFrame(data)
     return df
 
-def generateIceCream():
-    coneRad = np.random.uniform(1,3)
-    cone = generateCone(
-        coneRad,
-        -1 * np.random.uniform(4,8),
-    )
-    # generate scoops, a should exclude b, b should exclude a
-    numScoops = random.randint(1,4)
-
-    scoopPairs = []
-    prevRad = coneRad
-    for i in range(numScoops):
-        if i == 0:
-            scoopRad = np.random.uniform(coneRad, coneRad * 1.25)
-            # place scoop where it would be tangent to the cone
-        else:
-            scoopRad = np.random.uniform(prevRad * 0.7, prevRad * 0.9)
-    
-    # Scoop inclusion exclusion
-    scoops = []
-
-    pass
-
-def generateHat():
-
-def generateSnowMan():
-    circle1 = 
-
-
 def printShape(points):
     xLocs = [pt[0] for pt in points]
     yLocs = [pt[1] for pt in points]
@@ -166,10 +156,10 @@ def printShape(points):
     fig.show()
 
 def main():
-    cylinder = generateCylinder(1,2, 1000, 250)
-    printShape(cylinder)
-    # shapes = generateShapeDataset(1500,500,3)
-    # shapes.to_csv('./sphereConeCubeData.csv')
+    # cylinder = generateCylinder(1,2, 1000, 250)
+
+    shapes = generateShapeDataset(1500,500,3)
+    shapes.to_csv('./sphereConeCubeData.csv')
 
 if __name__ == "__main__":
     main()
