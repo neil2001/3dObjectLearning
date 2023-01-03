@@ -5,40 +5,77 @@ import numpy as np
 import random
 import math
 
+class Regularizer(tf.keras.regularizers.Regularizer):
+    def __init__(self, dims, l2Val=0.001):
+        self.dim = dims
+        self.regVal = l2Val
+        self.idMat = tf.eye(self.dim)
+
+    def __call__(self, x): 
+        A = tf.reshape(x, (-1, self.dim, self.dim))
+        # print(A, A.shape)
+        AAt = tf.tensordot(A, A, axes=(2, 2))
+        AAt = tf.reshape(AAt, (-1, self.dim, self.dim))
+        return tf.reduce_sum(self.regVal * tf.square(AAt - self.idMat))
+
+
 class TNet_TF(tf.keras.Model):
     def __init__(self, dims=3):
         super(TNet_TF, self).__init__()
         self.dim = dims
 
+        bias = tf.keras.initializers.Constant(np.eye(self.dim).flatten())
+        reg = Regularizer(self.dim)
+
         self.mlp1 = tf.keras.Sequential(
             [
-                tf.keras.layers.Conv1D(64, 1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+                tf.keras.layers.Conv1D(64, kernel_size=1, padding="valid"),
+                tf.keras.layers.BatchNormalization(momentum=0.0),
+                tf.keras.layers.Activation("relu"),
 
-                tf.keras.layers.Conv1D(128, 1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+                tf.keras.layers.Conv1D(128, kernel_size=1, padding="valid"),
+                tf.keras.layers.BatchNormalization(momentum=0.0),
+                tf.keras.layers.Activation("relu"),
 
                 tf.keras.layers.Conv1D(1024,1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
-            ]
-        )
+                tf.keras.layers.BatchNormalization(momentum=0.0),
+                tf.keras.layers.Activation("relu"),
 
-        self.mlp2 = tf.keras.Sequential(
-            [
+                tf.keras.layers.GlobalMaxPooling1D(),
+
                 tf.keras.layers.Dense(512),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+                tf.keras.layers.BatchNormalization(momentum=0.0),
+                tf.keras.layers.Activation("relu"),
 
                 tf.keras.layers.Dense(256),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+                tf.keras.layers.BatchNormalization(momentum=0.0),
+                tf.keras.layers.Activation("relu"),
 
-                tf.keras.layers.Dense(self.dim**2),
+                tf.keras.layers.Dense(
+                    self.dim * self.dim,
+                    kernel_initializer="zeros",
+                    bias_initializer=bias,
+                    activity_regularizer=reg,
+                )
             ]
         )
+
+        self.reshape = tf.keras.layers.Reshape((self.dim, self.dim))
+        self.dotProd = tf.keras.layers.Dot(axes=(2,1))
+
+        # self.mlp2 = tf.keras.Sequential(
+        #     [
+        #         tf.keras.layers.Dense(512),
+        #         tf.keras.layers.BatchNormalization(),
+        #         tf.keras.layers.ReLU(),
+
+        #         tf.keras.layers.Dense(256),
+        #         tf.keras.layers.BatchNormalization(),
+        #         tf.keras.layers.ReLU(),
+
+        #         tf.keras.layers.Dense(self.dim**2),
+        #     ]
+        # )
 
         # self.conv1 = tf.keras.layers.Conv1D(self.dim, 64)
         # self.conv2 = tf.keras.layers.Conv1D(64, 128)
@@ -52,19 +89,23 @@ class TNet_TF(tf.keras.Model):
         # self.bn64 = tf.keras.layers.BatchNormalization()
         
 
-    def call(self, x):
-        batch_size = x.shape[0]
-        x = tf.transpose(x, perm = [0,2,1])
-        x = self.mlp1(x)
-        x = tf.math.reduce_max(x, axis=2)
-        x = self.mlp2(x)
-        nxnID = tf.reshape(tf.eye(self.dim), self.dim**2)
-        # print(nxnID)
-        identityMat = tf.tile([nxnID], [batch_size,1])
-        # print(identityMat)
-        x += identityMat
-        x = tf.reshape(x, [-1, self.dim, self.dim])
-        return tf.cast(x, tf.float64)
+    def call(self, inputs):
+
+        x = self.mlp1(inputs)
+        features = self.reshape(x)
+        return self.dotProd([inputs, features])
+        # batch_size = x.shape[0]
+        # x = tf.transpose(x, perm = [0,2,1])
+        # x = self.mlp1(x)
+        # x = tf.math.reduce_max(x, axis=2)
+        # x = self.mlp2(x)
+        # nxnID = tf.reshape(tf.eye(self.dim), self.dim**2)
+        # # print(nxnID)
+        # identityMat = tf.tile([nxnID], [batch_size,1])
+        # # print(identityMat)
+        # x += identityMat
+        # x = tf.reshape(x, [-1, self.dim, self.dim])
+        # return tf.cast(x, tf.float64)
         #tf.math.reduce_max(
 
 class PointNet_TF(tf.keras.Model):
@@ -108,11 +149,9 @@ class PointNet_TF(tf.keras.Model):
                 tf.keras.layers.Conv1D(1024,1),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.ReLU(),
-            ]
-        )
 
-        self.mlp3 = tf.keras.Sequential(
-            [
+                tf.keras.layers.GlobalMaxPooling1D(),
+            
                 tf.keras.layers.Dense(512),
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.ReLU(),
@@ -121,46 +160,45 @@ class PointNet_TF(tf.keras.Model):
                 tf.keras.layers.BatchNormalization(),
                 tf.keras.layers.ReLU(),
 
-                tf.keras.layers.Dense(num_classes),
+                tf.keras.layers.Dropout(0.3),
+
+                tf.keras.layers.Dense(num_classes, activation="softmax")
             ]
         )
-
-        self.softmax = tf.keras.layers.Softmax(1)
         pass
 
     def call(self, x):
-        print("TENSOR SIZE", x.shape[0])
-        batch_size = x.shape[0]
-        n = x.shape[1]
-        m = x.shape[2]
+        # print("TENSOR SIZE", x.shape)
+        # batch_size = x.shape[0]
+        # n = x.shape[1]
+        # m = x.shape[2]
 
         transform = self.tnet3(x) #tf.convert_to_tensor(self.tnet3(x), dtype = tf.float32)
-        x = tf.cast(x, dtype = tf.float64)
-        x = tf.reshape(tf.reshape(x, [-1, m]) @ transform, [-1, n, 3])
-        x = tf.transpose(x, perm=[0,2,1])
+        # x = tf.cast(x, dtype = tf.float64)
+        # x = tf.reshape(tf.reshape(x, [-1, m]) @ transform, [-1, n, 3])
+        # x = tf.transpose(x, perm=[0,2,1])
         x = self.mlp1(x)
 
-        x = tf.transpose(x, perm=[0,2,1])
-        transform64 = self.tnet64(x)
-        x = tf.cast(x, dtype = tf.float64)
-        x = tf.reshape(tf.reshape(x, [-1, x.shape[1]]) @ transform64, [-1, x.shape[2], 64])
-        print(x.shape)
-        x = tf.transpose(x, perm=[0,2,1])
+        x = self.tnet64(x)
+
+        # x = tf.transpose(x, perm=[0,2,1])
+        # transform64 = self.tnet64(x)
+        # x = tf.cast(x, dtype = tf.float64)
+        # x = tf.reshape(tf.reshape(x, [-1, x.shape[1]]) @ transform64, [-1, x.shape[2], 64])
+        # print(x.shape)
+        # x = tf.transpose(x, perm=[0,2,1])
 
         x = self.mlp2(x)
-        x = tf.math.reduce_max(x, axis=2)
-        x = self.mlp3(x)
-        x = self.softmax(x)
-
         return x
 
     def loss(self, logits, labels):
         softMaxLogits = tf.nn.softmax_cross_entropy_with_logits(labels, logits)
         softMaxLogits = tf.reduce_mean(softMaxLogits)
+        # print(softMaxLogits)
         return softMaxLogits
 
     def accuracy(self, logits, labels):
-        correct_predictions = tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1))
+        correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
         return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
 
 def train(model, train_inputs, train_labels, num_epochs):
@@ -184,7 +222,7 @@ def train(model, train_inputs, train_labels, num_epochs):
             with tf.GradientTape() as tape:
                 probs = model.call(batchInputs)
                 loss = model.loss(probs, batchLabels)
-                print(loss)
+                # print(loss)
                 model.loss_list.append(loss)
 
             gradients = tape.gradient(loss, model.trainable_variables)

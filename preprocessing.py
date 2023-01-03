@@ -78,7 +78,7 @@ def preprocess_tf(file_loc, num_classes):
     transformed = np.array(list(map(transform, list(coordsAsNumpy))))
     
     one_hot_labels = tf.one_hot(labels, num_classes)
-    return transformed, one_hot_labels
+    return transformed, labels #one_hot_labels
 
 def preprocess(file_loc, batch_size, test_size):
     shapeDataset = pd.read_csv(file_loc, index_col=0)

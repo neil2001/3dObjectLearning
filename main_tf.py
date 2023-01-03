@@ -5,12 +5,11 @@ import numpy as np
 import random
 
 import tensorflow as tf
+# import tensorflow.keras
 import math
 # from tf import nn, optim
 
-def testNN_tf():
-    test_size = 0.2
-    num_epoch = 1
+def getSphereConeCubeData(test_size = 0.2):
     
     shapes, labels = preprocess_tf('sphereConeCubeData.csv', 3)
     trainX = shapes[:math.floor(len(shapes)*(1-test_size))]
@@ -19,6 +18,14 @@ def testNN_tf():
 
     testX = shapes[math.floor(len(shapes)*(1-test_size)):]
     testY = labels[math.floor(len(labels)*(1-test_size)):]
+
+    return trainX, trainY, testX, testY
+
+def testNN_tf_2():
+    test_size = 0.2
+    num_epoch = 1
+    
+    trainX, trainY, testX, testY = getSphereConeCubeData()
 
     model = PointNet_TF(num_classes=3)
 
@@ -29,6 +36,45 @@ def testNN_tf():
     print('Average Training Loss:', loss_train)
     print('Average Testing Loss:', loss_test)
     
+
+def testNN_tf():
+    test_size = 0.2
+    num_epoch = 1
+    BATCH_SIZE = 128
+
+    trainX, trainY, testX, testY = getSphereConeCubeData(test_size)
+
+    train_dataset = tf.data.Dataset.from_tensor_slices((trainX, trainY))
+    test_dataset = tf.data.Dataset.from_tensor_slices((testX, testY))
+
+    train_dataset = train_dataset.shuffle(len(trainX)).batch(BATCH_SIZE)
+    test_dataset = test_dataset.shuffle(len(testX)).batch(BATCH_SIZE)
+
+    # print(train_dataset)
+
+    model = PointNet_TF(num_classes=3)
+    model.compile(
+        loss="sparse_categorical_crossentropy",
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        metrics=["sparse_categorical_accuracy"],
+    )
+
+    # train(model, trainX, trainY, num_epoch)
+    # loss_train = test(model, trainX, trainY)
+    # loss_test = test(model, testX, testY)
+
+    # print('Average Training Loss:', loss_train)
+    # print('Average Testing Loss:', loss_test)
+
+    # model.build((None, 500, 3))
+    # model.summary()
+    
+    model.fit(train_dataset, epochs=num_epoch, validation_data=test_dataset)
+
+    preds = model.predict(test_dataset)
+    # preds = tf.math.argmax(preds, -1)
+
+    print(model.accuracy(preds, testY))
 
 def main():
     testNN_tf()
