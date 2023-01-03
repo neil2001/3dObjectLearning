@@ -43,11 +43,11 @@ class TNet(nn.Module):
         self.relu4 = nn.ReLU()
         self.relu5 = nn.ReLU()
 
-        self.bn64 = nn.BatchNorm1d(64) # nn.LayerNorm((64, 500)) #
-        self.bn128 = nn.BatchNorm1d(128) # nn.LayerNorm((128, 500)) #
-        self.bn1024 = nn.BatchNorm1d(1024) # nn.LayerNorm((1024, 500)) #
-        self.bn512 = nn.BatchNorm1d(512) #nn.LayerNorm((512, )) #
-        self.bn256 = nn.BatchNorm1d(256) #nn.LayerNorm((256, )) #
+        self.bn64 = nn.BatchNorm1d(64, momentum=0) # nn.LayerNorm((64, 500)) #
+        self.bn128 = nn.BatchNorm1d(128, momentum=0) # nn.LayerNorm((128, 500)) #
+        self.bn1024 = nn.BatchNorm1d(1024, momentum=0) # nn.LayerNorm((1024, 500)) #
+        self.bn512 = nn.BatchNorm1d(512, momentum=0) #nn.LayerNorm((512, )) #
+        self.bn256 = nn.BatchNorm1d(256, momentum=0) #nn.LayerNorm((256, )) #
 
         pass
 
@@ -81,18 +81,19 @@ class PointNet(nn.Module):
     def __init__(self, num_classes=2):
         super().__init__()
         self.tnet3 = TNet(3)
-        self.tnet64 = TNet(64)
 
         self.mlp1 = nn.Sequential(
             nn.Conv1d(3,64,1),
-            nn.BatchNorm1d(64),
+            nn.BatchNorm1d(64, momentum=0),
             nn.ReLU(inplace=False),
 
             nn.Conv1d(64,64,1),
-            nn.BatchNorm1d(64),
+            nn.BatchNorm1d(64, momentum=0),
             nn.ReLU(inplace=False),
 
         )
+
+        self.tnet64 = TNet(64)
 
         # self.conv1 = nn.Conv1d(3,64,1)
         # self.conv2 = nn.Conv1d(64,64,1)
@@ -100,29 +101,29 @@ class PointNet(nn.Module):
         # first multilayer perceptron 
         self.mlp2 = nn.Sequential(
             nn.Conv1d(64,64,1),
-            nn.BatchNorm1d(64),
+            nn.BatchNorm1d(64, momentum=0),
             nn.ReLU(inplace=False),
 
 
             nn.Conv1d(64,128,1),
-            nn.BatchNorm1d(128),
+            nn.BatchNorm1d(128, momentum=0),
             nn.ReLU(inplace=False),
 
 
             nn.Conv1d(128,1024,1),
-            nn.BatchNorm1d(1024),
+            nn.BatchNorm1d(1024, momentum=0),
             nn.ReLU(inplace=False),
 
         )
 
         self.mlp3 = nn.Sequential(
             nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
+            nn.BatchNorm1d(512, momentum=0),
             nn.ReLU(inplace=False),
 
             nn.Linear(512, 256),
-            nn.BatchNorm1d(256),
-            nn.Dropout(p=0.3),
+            nn.BatchNorm1d(256, momentum=0),
+            # nn.Dropout(p=0.3),
             nn.ReLU(inplace=False),
 
             nn.Linear(256, num_classes)
@@ -224,12 +225,12 @@ def test(model, dataloader, loss_func, correct_num_func=None):
     num_correct_preds = 0
     
     model.eval()
-    for m in model.modules():
-        for child in m.children():
-            if type(child) == nn.BatchNorm1d:
-                # child.track_running_stats = False
-                child.running_mean = None
-                child.running_var = None
+    # for m in model.modules():
+    #     for child in m.children():
+    #         if type(child) == nn.BatchNorm1d:
+    #             # child.track_running_stats = False
+    #             child.running_mean = None
+    #             child.running_var = None
     data_size = len(dataloader.dataset)
     with torch.no_grad(): #don't calculate gradients while testing
         for X,Y in dataloader:

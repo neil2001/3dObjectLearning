@@ -19,7 +19,7 @@ def testNN():
     # model = SimpleNN()
     model = PointNet(num_classes=3)
     # model.train()
-    optimizer = optim.Adam(model.parameters(), lr=0.0001) #optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=0.001) #optim.SGD(model.parameters(), lr=learning_rate)
     loss_func = nn.CrossEntropyLoss()
     # print("PRETRAIN:", model.parameters())
     losses = train(model, dataloader_train, loss_func, optimizer, num_epoch, num_correct_preds)

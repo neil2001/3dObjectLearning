@@ -79,11 +79,6 @@ class PointNet_TF(tf.keras.Model):
 
         self.batch_size = 32
         self.num_classes = 3
-        self.loss_list = [] # Append losses to this list in training so you can visualize loss vs time in main
-
-        # TODO: Initialize all hyperparameters
-        # self.learning_rate = .001
-        # self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         
         self.tnet3 = TNet_TF()
 
@@ -143,46 +138,6 @@ class PointNet_TF(tf.keras.Model):
         x = self.softmax10(x)
         return x
 
-    # def loss(self, logits, labels):
-    #     softMaxLogits = tf.nn.softmax_cross_entropy_with_logits(labels, logits)
-    #     softMaxLogits = tf.reduce_mean(softMaxLogits)
-    #     # print(softMaxLogits)
-    #     return softMaxLogits
-
     def accuracy(self, logits, labels):
         correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
         return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
-
-def train(model, train_inputs, train_labels, num_epochs):
-    # losses = []
-    # accuracy_vals = []
-    # model.fit()
-
-    for n in range(num_epochs):
-        indices = tf.range(0, len(train_inputs), 1)
-        shuffledIndices = tf.random.shuffle(indices)
-        shuffledInputs = tf.gather(train_inputs, shuffledIndices)
-        shuffledLabels = tf.gather(train_labels, shuffledIndices)
-        # randomizedInputs =  tf.image.random_flip_left_right(shuffledInputs)
-        
-        epoch_loss_sum = 0
-        epoch_correct_num = 0
-        for i in range(0, len(train_inputs), model.batch_size):
-            batchInputs = shuffledInputs[i:i+model.batch_size]
-            batchLabels = shuffledLabels[i:i+model.batch_size]
-
-            with tf.GradientTape() as tape:
-                probs = model.call(batchInputs)
-                loss = model.loss(probs, batchLabels)
-                # print(loss)
-                model.loss_list.append(loss)
-
-            gradients = tape.gradient(loss, model.trainable_variables)
-            model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-            
-    return
-
-def test(model, test_inputs, test_labels):
-    # model.evaluate()
-    probs = model.call(test_inputs)
-    return model.accuracy(probs, test_labels)
