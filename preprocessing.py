@@ -72,6 +72,7 @@ def preprocess_tf(file_loc, num_classes):
     shapeDataset = shapeDataset.sample(frac=1).reset_index(drop=True)
     numSamples = len(shapeDataset)
     print("number of samples", numSamples)
+    # print(shapeDataset.head())
     labels = np.array(shapeDataset['0']).flatten() # labels
     shapeCoords = shapeDataset.drop(columns=['0'])
     coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,500,3))

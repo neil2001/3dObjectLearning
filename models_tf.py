@@ -21,125 +21,133 @@ class Regularizer(tf.keras.regularizers.Regularizer):
 
 class TNet_TF(tf.keras.Model):
     def __init__(self, dims=3):
-        super(TNet_TF, self).__init__()
+        super().__init__()
         self.dim = dims
 
         bias = tf.keras.initializers.Constant(np.eye(self.dim).flatten())
         reg = Regularizer(self.dim)
 
-        self.mlp1 = tf.keras.Sequential(
-            [
-                tf.keras.layers.Conv1D(64, kernel_size=1, padding="valid"),
-                tf.keras.layers.BatchNormalization(momentum=0.0),
-                tf.keras.layers.Activation("relu"),
+        self.conv1 = tf.keras.layers.Conv1D(32, kernel_size=1, padding="valid")
+        self.bn1 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu1 = tf.keras.layers.Activation("relu")
 
-                tf.keras.layers.Conv1D(128, kernel_size=1, padding="valid"),
-                tf.keras.layers.BatchNormalization(momentum=0.0),
-                tf.keras.layers.Activation("relu"),
+        self.conv2 = tf.keras.layers.Conv1D(64, kernel_size=1, padding="valid")
+        self.bn2 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu2 = tf.keras.layers.Activation("relu")
 
-                tf.keras.layers.Conv1D(1024,1),
-                tf.keras.layers.BatchNormalization(momentum=0.0),
-                tf.keras.layers.Activation("relu"),
+        self.conv3 = tf.keras.layers.Conv1D(512,1)
+        self.bn3 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu3 = tf.keras.layers.Activation("relu")
 
-                tf.keras.layers.GlobalMaxPooling1D(),
+        self.maxpool4 = tf.keras.layers.GlobalMaxPooling1D()
 
-                tf.keras.layers.Dense(512),
-                tf.keras.layers.BatchNormalization(momentum=0.0),
-                tf.keras.layers.Activation("relu"),
+        self.linear5 = tf.keras.layers.Dense(256)
+        self.bn5 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu5 = tf.keras.layers.Activation("relu")
 
-                tf.keras.layers.Dense(256),
-                tf.keras.layers.BatchNormalization(momentum=0.0),
-                tf.keras.layers.Activation("relu"),
+        self.linear6 = tf.keras.layers.Dense(128)
+        self.bn6 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu6 = tf.keras.layers.Activation("relu")
 
-                tf.keras.layers.Dense(
-                    self.dim * self.dim,
-                    kernel_initializer="zeros",
-                    bias_initializer=bias,
-                    activity_regularizer=reg,
-                )
-            ]
-        )
+        self.linear7 = tf.keras.layers.Dense(
+                            self.dim * self.dim,
+                            kernel_initializer="zeros",
+                            bias_initializer=bias,
+                            activity_regularizer=reg,
+                        )
 
         self.reshape = tf.keras.layers.Reshape((self.dim, self.dim))
         self.dotProd = tf.keras.layers.Dot(axes=(2,1))
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
+        x = self.relu1(self.bn1(self.conv1(inputs), training=training))
+        x = self.relu2(self.bn2(self.conv2(x), training=training))
+        x = self.relu3(self.bn3(self.conv3(x), training=training))
 
-        x = self.mlp1(inputs)
+        x = self.maxpool4(x)
+        x = self.relu5(self.bn5(self.linear5(x), training=training))
+        x = self.relu6(self.bn6(self.linear6(x), training=training))
+
+        x = self.linear7(x)
+
         features = self.reshape(x)
         return self.dotProd([inputs, features])
 
 class PointNet_TF(tf.keras.Model):
     def __init__(self, num_classes):
-        super(PointNet_TF, self).__init__()
+        super().__init__()
 
-        self.batch_size = 64
-        self.num_classes = 2
+        self.batch_size = 32
+        self.num_classes = 3
         self.loss_list = [] # Append losses to this list in training so you can visualize loss vs time in main
 
         # TODO: Initialize all hyperparameters
-        self.input_size = 1024
-        self.learning_rate = .001
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
+        # self.learning_rate = .001
+        # self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
         
         self.tnet3 = TNet_TF()
-        self.tnet64 = TNet_TF(64)
 
-        self.mlp1 = tf.keras.Sequential(
-            [
-                tf.keras.layers.Conv1D(64,1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.conv1 = tf.keras.layers.Conv1D(32,1)
+        self.bn1 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu1 = tf.keras.layers.ReLU()
 
-                tf.keras.layers.Conv1D(64,1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
-            ]
-        )
+        self.conv2 = tf.keras.layers.Conv1D(32,1)
+        self.bn2 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu2 = tf.keras.layers.ReLU()
 
-        self.mlp2 = tf.keras.Sequential(
-            [
-                tf.keras.layers.Conv1D(64, 1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.tnet64 = TNet_TF(32)
 
-                tf.keras.layers.Conv1D(128, 1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.conv3 = tf.keras.layers.Conv1D(32, 1)
+        self.bn3 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu3 = tf.keras.layers.ReLU()
 
-                tf.keras.layers.Conv1D(1024,1),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.conv4 = tf.keras.layers.Conv1D(64, 1)
+        self.bn4 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu4 = tf.keras.layers.ReLU()
 
-                tf.keras.layers.GlobalMaxPooling1D(),
+        self.conv5 = tf.keras.layers.Conv1D(512,1)
+        self.bn5 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu5 = tf.keras.layers.ReLU()
+
+        self.maxPool6 = tf.keras.layers.GlobalMaxPooling1D()
             
-                tf.keras.layers.Dense(512),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.linear7 = tf.keras.layers.Dense(256)
+        self.bn7 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu7 = tf.keras.layers.ReLU()
 
-                tf.keras.layers.Dense(256),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.ReLU(),
+        self.linear8 = tf.keras.layers.Dense(128)
+        self.bn8 = tf.keras.layers.BatchNormalization(momentum=0.0)
+        self.relu8 = tf.keras.layers.ReLU()
 
-                tf.keras.layers.Dropout(0.3),
+        self.dropout9 = tf.keras.layers.Dropout(0.3)
 
-                tf.keras.layers.Dense(num_classes, activation="softmax")
-            ]
-        )
+        self.softmax10 = tf.keras.layers.Dense(num_classes, activation="softmax")
         pass
 
-    def call(self, x):
-        transform = self.tnet3(x) #tf.convert_to_tensor(self.tnet3(x), dtype = tf.float32)
-        x = self.mlp1(x)
+    def call(self, x, training=False):
+        x = self.tnet3(x) #tf.convert_to_tensor(self.tnet3(x), dtype = tf.float32)
+        x = self.relu1(self.bn1(self.conv1(x), training=training))
+        x = self.relu2(self.bn2(self.conv2(x), training=training))
         x = self.tnet64(x)
-        x = self.mlp2(x)
+        x = self.relu3(self.bn3(self.conv3(x), training=training))
+        x = self.relu4(self.bn4(self.conv4(x), training=training))
+        x = self.relu5(self.bn5(self.conv5(x), training=training))
+
+        x = self.maxPool6(x)
+
+        x = self.relu7(self.bn7(self.linear7(x), training=training))
+        x = self.relu8(self.bn8(self.linear8(x), training=training))
+
+        x = self.dropout9(x, training=training)
+
+        x = self.softmax10(x)
         return x
 
-    def loss(self, logits, labels):
-        softMaxLogits = tf.nn.softmax_cross_entropy_with_logits(labels, logits)
-        softMaxLogits = tf.reduce_mean(softMaxLogits)
-        # print(softMaxLogits)
-        return softMaxLogits
+    # def loss(self, logits, labels):
+    #     softMaxLogits = tf.nn.softmax_cross_entropy_with_logits(labels, logits)
+    #     softMaxLogits = tf.reduce_mean(softMaxLogits)
+    #     # print(softMaxLogits)
+    #     return softMaxLogits
 
     def accuracy(self, logits, labels):
         correct_predictions = tf.equal(tf.argmax(logits, 1), labels)

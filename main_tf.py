@@ -40,28 +40,30 @@ def testNN_tf_2():
 def testNN_tf():
     test_size = 0.2
     num_epoch = 1
-    BATCH_SIZE = 128
+    BATCH_SIZE = 32
 
     trainX, trainY, testX, testY = getSphereConeCubeData(test_size)
 
     train_dataset = tf.data.Dataset.from_tensor_slices((trainX, trainY))
     test_dataset = tf.data.Dataset.from_tensor_slices((testX, testY))
 
-    train_dataset = train_dataset.shuffle(len(trainX)).batch(BATCH_SIZE)
-    test_dataset = test_dataset.shuffle(len(testX)).batch(BATCH_SIZE)
+    train_dataset = train_dataset.batch(BATCH_SIZE)
+    val_dataset = test_dataset.batch(BATCH_SIZE)
 
     # print(train_dataset)
 
     model = PointNet_TF(num_classes=3)
+    # model.build((BATCH_SIZE, 500,3))
     model.compile(
         loss="sparse_categorical_crossentropy",
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         metrics=["sparse_categorical_accuracy"],
     )
+    # model.summary()
     
-    model.fit(train_dataset, epochs=num_epoch, validation_data=test_dataset)
-    model.summary()
-    preds = model.predict(test_dataset)
+    model.fit(train_dataset, epochs=num_epoch, validation_data=val_dataset)
+
+    preds = model.predict(test_dataset.batch(4))
 
     print(model.accuracy(preds, testY))
 
