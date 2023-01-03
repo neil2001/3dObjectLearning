@@ -58,21 +58,10 @@ def testNN_tf():
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         metrics=["sparse_categorical_accuracy"],
     )
-
-    # train(model, trainX, trainY, num_epoch)
-    # loss_train = test(model, trainX, trainY)
-    # loss_test = test(model, testX, testY)
-
-    # print('Average Training Loss:', loss_train)
-    # print('Average Testing Loss:', loss_test)
-
-    # model.build((None, 500, 3))
-    # model.summary()
     
     model.fit(train_dataset, epochs=num_epoch, validation_data=test_dataset)
-
+    model.summary()
     preds = model.predict(test_dataset)
-    # preds = tf.math.argmax(preds, -1)
 
     print(model.accuracy(preds, testY))
 

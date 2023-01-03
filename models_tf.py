@@ -63,50 +63,11 @@ class TNet_TF(tf.keras.Model):
         self.reshape = tf.keras.layers.Reshape((self.dim, self.dim))
         self.dotProd = tf.keras.layers.Dot(axes=(2,1))
 
-        # self.mlp2 = tf.keras.Sequential(
-        #     [
-        #         tf.keras.layers.Dense(512),
-        #         tf.keras.layers.BatchNormalization(),
-        #         tf.keras.layers.ReLU(),
-
-        #         tf.keras.layers.Dense(256),
-        #         tf.keras.layers.BatchNormalization(),
-        #         tf.keras.layers.ReLU(),
-
-        #         tf.keras.layers.Dense(self.dim**2),
-        #     ]
-        # )
-
-        # self.conv1 = tf.keras.layers.Conv1D(self.dim, 64)
-        # self.conv2 = tf.keras.layers.Conv1D(64, 128)
-        # self.conv3 = tf.keras.layers.Conv1D(128,1024)
-        # self.linear1 = tf.keras.layers.Dense(512)
-        # self.linear2 = tf.keras.layers.Dense(256)
-        # self.linear3 = tf.keras.layers.Dense(self.dim**2)
-
-        # self.relu = tf.keras.layers.ReLU()
-
-        # self.bn64 = tf.keras.layers.BatchNormalization()
-        
-
     def call(self, inputs):
 
         x = self.mlp1(inputs)
         features = self.reshape(x)
         return self.dotProd([inputs, features])
-        # batch_size = x.shape[0]
-        # x = tf.transpose(x, perm = [0,2,1])
-        # x = self.mlp1(x)
-        # x = tf.math.reduce_max(x, axis=2)
-        # x = self.mlp2(x)
-        # nxnID = tf.reshape(tf.eye(self.dim), self.dim**2)
-        # # print(nxnID)
-        # identityMat = tf.tile([nxnID], [batch_size,1])
-        # # print(identityMat)
-        # x += identityMat
-        # x = tf.reshape(x, [-1, self.dim, self.dim])
-        # return tf.cast(x, tf.float64)
-        #tf.math.reduce_max(
 
 class PointNet_TF(tf.keras.Model):
     def __init__(self, num_classes):
@@ -168,26 +129,9 @@ class PointNet_TF(tf.keras.Model):
         pass
 
     def call(self, x):
-        # print("TENSOR SIZE", x.shape)
-        # batch_size = x.shape[0]
-        # n = x.shape[1]
-        # m = x.shape[2]
-
         transform = self.tnet3(x) #tf.convert_to_tensor(self.tnet3(x), dtype = tf.float32)
-        # x = tf.cast(x, dtype = tf.float64)
-        # x = tf.reshape(tf.reshape(x, [-1, m]) @ transform, [-1, n, 3])
-        # x = tf.transpose(x, perm=[0,2,1])
         x = self.mlp1(x)
-
         x = self.tnet64(x)
-
-        # x = tf.transpose(x, perm=[0,2,1])
-        # transform64 = self.tnet64(x)
-        # x = tf.cast(x, dtype = tf.float64)
-        # x = tf.reshape(tf.reshape(x, [-1, x.shape[1]]) @ transform64, [-1, x.shape[2], 64])
-        # print(x.shape)
-        # x = tf.transpose(x, perm=[0,2,1])
-
         x = self.mlp2(x)
         return x
 
