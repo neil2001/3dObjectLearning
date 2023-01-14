@@ -118,7 +118,7 @@ def generateCloud():
     np.random.shuffle(points)
     return points
 
-def generateSnowDataset(samples=1000, num_points=500, num_classes=3):
+def generateSnowDataset(samples=1500, num_points=500, num_classes=3):
     funcs = [generateCloud, generateIceCream, generateSnowMan]
     data = []
     for i in range(samples):
@@ -126,6 +126,8 @@ def generateSnowDataset(samples=1000, num_points=500, num_classes=3):
         points = funcs[objClass]()
         pointsFlat = [objClass] + list(points[:num_points].flatten())
         data.append(pointsFlat)
+        if i % 100 == 0:
+            print(str(i) + " shapes generated")
 
     df = pd.DataFrame(data)
     return df
