@@ -9,9 +9,8 @@ import tensorflow as tf
 import math
 # from tf import nn, optim
 
-def getSphereConeCubeData(test_size = 0.15, val_size = 0.15):
-    
-    shapes, labels = preprocess_tf('sphereConeCubeData.csv', 3)
+def getTrainTestValData(fileLoc, test_size = 0.15, val_size = 0.15):
+    shapes, labels = preprocess_tf(fileLoc, 3)
     trainX = shapes[:math.floor(len(shapes)*(1-test_size-val_size))]
     trainY = labels[:math.floor(len(labels)*(1-test_size-val_size))]
 
@@ -26,11 +25,14 @@ def getSphereConeCubeData(test_size = 0.15, val_size = 0.15):
     return trainX, trainY, valX, valY, testX, testY
     
 def testNN_tf():
-    test_size = 0.2
-    num_epoch = 4
+    # test_size = 0.2
+    num_epoch = 6
     BATCH_SIZE = 32
 
-    trainX, trainY, valX, valY, testX, testY = getSphereConeCubeData(test_size)
+    primitiveFile = 'sphereConeCubeData.csv'
+    snowFile = 'snowDataset.csv'
+
+    trainX, trainY, valX, valY, testX, testY = getTrainTestValData(snowFile)
 
     train_dataset = tf.data.Dataset.from_tensor_slices((trainX, trainY))
     val_dataset = tf.data.Dataset.from_tensor_slices((valX, valY))
