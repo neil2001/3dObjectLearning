@@ -12,7 +12,7 @@ from shapeGeneration import printShape
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-import tensorflow as tf
+# import tensorflow as tf
 
 class ShapeDataset(Dataset):
     def __init__(self, X, Y):
@@ -28,9 +28,25 @@ class ShapeDataset(Dataset):
 
 # Applying random rotation and translation
 def normalizeScale(shapeMat):
+    # return shapeMat
     minCoord = shapeMat.min(axis=0)
-    shapeMat = (shapeMat - minCoord)/(shapeMat.max(axis=0) - minCoord)
-    return shapeMat
+    maxCoord = shapeMat.max(axis=0)
+    # print(minCoord, maxCoord)
+    # axSizes = 1/(maxCoord - minCoord)
+    scaleVal = max(maxCoord-minCoord)
+    scaled = shapeMat / scaleVal
+    # print(axSizes)
+    # scaleMat = np.array([
+    #     [axSizes[0],0,0],
+    #     [0,axSizes[1],0,],
+    #     [0,0,axSizes[2]]
+    #     ])
+    # scaled = np.matmul(shapeMat, scaleMat)
+    return scaled
+
+    # minCoord = shapeMat.min(axis=0)
+    # shapeMat = (shapeMat - minCoord)/(shapeMat.max(axis=0) - minCoord)
+    # return shapeMat
 
 def randomRotation(shapeMat):
     rotation_angle = np.random.uniform(0,1) * 2 * math.pi
@@ -58,12 +74,12 @@ def randomTranslate(shapeMat):
     return shapeMat
 
 def transform(shapeMat):
-    translated = randomTranslate(shapeMat)
-    rotated = randomRotation(translated)
-    normalized = normalizeScale(rotated)
+    normalized = normalizeScale(shapeMat)
+    rotated = randomRotation(normalized)
+    translated = randomTranslate(rotated)
     # normalized = normalizeScale(shapeMat)
     # print(normalized)
-    return normalized
+    return translated
 
     # return shapeMat
 
@@ -78,7 +94,7 @@ def preprocess_tf(file_loc, num_classes):
     coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,500,3))
     transformed = np.array(list(map(transform, list(coordsAsNumpy))))
     
-    one_hot_labels = tf.one_hot(labels, num_classes)
+    # one_hot_labels = tf.one_hot(labels, num_classes)
     return transformed, labels #one_hot_labels
 
 def preprocess(file_loc, batch_size, test_size):
@@ -101,3 +117,11 @@ def preprocess(file_loc, batch_size, test_size):
     dataloader_test = DataLoader(dataset_test, batch_size=32, shuffle=False)
 
     return dataloader_train, dataloader_test
+
+def main():
+    snowData, snowLabels = preprocess_tf('/Users/neilxu/Documents/3dObjectLearning/snowDataset.csv', 3)
+    printShape(snowData[0])
+    return
+
+if __name__ == "__main__":
+    main()

@@ -4,7 +4,7 @@ import numpy as np
 import random
 import math
 
-from shapeGeneration import generateCone, generateCylinder, generateSphere, printShape, printShape, Ball
+from shapeGeneration import generateCone, generateCylinder, generateSphere, printShape, Ball
 
 def mergeSpheres(s1, s2):
     s2.points = np.array(list(filter(lambda x: euclideanDist(s1.pos, x) > s1.radius, s2.points)))
@@ -118,12 +118,14 @@ def generateCloud():
     np.random.shuffle(points)
     return points
 
-def generateSnowDataset(samples=1000, num_points=1000, num_classes=3):
+def generateSnowDataset(samples=1000, num_points=500, num_classes=3):
     funcs = [generateCloud, generateIceCream, generateSnowMan]
     data = []
     for i in range(samples):
-        points = funcs[random.randint(0,2)]()
-        data.append(points[:num_points])
+        objClass = random.randint(0,2)
+        points = funcs[objClass]()
+        pointsFlat = [objClass] + list(points[:num_points].flatten())
+        data.append(pointsFlat)
 
     df = pd.DataFrame(data)
     return df
@@ -131,6 +133,7 @@ def generateSnowDataset(samples=1000, num_points=1000, num_classes=3):
 def main():
     snowShapes = generateSnowDataset()
     snowShapes.to_csv("./snowDataset.csv")
+    # print(snowShapes.head())
 
     # ice_cream = generateIceCream()
     # printShape(ice_cream)
