@@ -1,7 +1,5 @@
 env/
-sphereConeCubeData.csv
-./sphereConeCubeData.csv
-snowDataset.csv
+data/
 snowModel/
 snowModel.data-00000-of-00001
 snowModel.index

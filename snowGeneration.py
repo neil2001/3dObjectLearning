@@ -118,7 +118,7 @@ def generateCloud():
     np.random.shuffle(points)
     return points
 
-def generateSnowDataset(samples=1500, num_points=500, num_classes=3):
+def generateSnowDataset(samples=1500, num_points=500):
     funcs = [generateCloud, generateIceCream, generateSnowMan]
     data = []
     for i in range(samples):
@@ -133,18 +133,18 @@ def generateSnowDataset(samples=1500, num_points=500, num_classes=3):
     return df
 
 def main():
-    snowShapes = generateSnowDataset()
-    snowShapes.to_csv("./snowDataset.csv")
+    # snowShapes = generateSnowDataset()
+    # snowShapes.to_csv("./snowDataset.csv")
     # print(snowShapes.head())
 
-    # ice_cream = generateIceCream()
-    # printShape(ice_cream)
+    ice_cream = generateIceCream()
+    printShape(ice_cream, "images/iceCream.png", "Example of an ice cream cone")
 
-    # snowMan = generateSnowMan()
-    # printShape(snowMan)
+    snowMan = generateSnowMan()
+    printShape(snowMan, "images/snowMan.png", "Example of a snowman")
 
-    # cloud = generateCloud()
-    # printShape(cloud)
+    cloud = generateCloud()
+    printShape(cloud, "images/cloud.png", "Example of a cloud")
 
 
 if __name__ == "__main__":

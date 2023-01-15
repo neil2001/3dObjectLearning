@@ -119,7 +119,7 @@ def preprocess(file_loc, batch_size, test_size):
     return dataloader_train, dataloader_test
 
 def main():
-    snowData, snowLabels = preprocess_tf('/Users/neilxu/Documents/3dObjectLearning/snowDataset.csv', 3)
+    snowData, snowLabels = preprocess_tf('/Users/neilxu/Documents/3dObjectLearning/data/snowDataset.csv', 3)
     printShape(snowData[0])
     return
 

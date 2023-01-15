@@ -172,7 +172,7 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
-def printShape(points):
+def printShape(points, dest, title):
     xLocs = [pt[0] for pt in points]
     yLocs = [pt[1] for pt in points]
     zLocs = [pt[2] for pt in points]
@@ -180,15 +180,26 @@ def printShape(points):
     ax = fig.add_subplot(projection='3d')
     ax.scatter(xLocs, yLocs, zLocs)
     set_axes_equal(ax)
-    ax.set_title('Example of a sampled object', fontdict={'fontsize':20})
-    fig.savefig('./full_figure.png')
+    ax.set_title(title, fontdict={'fontsize':20})
+    fig.savefig(dest)
     fig.show()
+    plt.close()
 
 def main():
-    # cylinder = generateCylinder(1,2, 1000, 250)
+    cylinder = generateCylinder(1,2, 1000, 250)
+    printShape(cylinder, "images/cylinder.png", "Example of a cylinder")
 
-    shapes = generateShapeDataset(1500,500,3)
-    shapes.to_csv('./sphereConeCubeData.csv')
+    sphere = generateSphere(5, n=500)
+    printShape(sphere, "images/sphere.png", "Example of a sphere")
+
+    cone = generateCone(2, 6, baseN = 200, coneN = 300)
+    printShape(cone, "images/cone.png", "Example of a cone")
+
+    cube = generateCube()
+    printShape(cube, "images/cube.png", "Example of a cube")
+
+    # shapes = generateShapeDataset(1500,500,3)
+    # shapes.to_csv('./sphereConeCubeData.csv')
 
 if __name__ == "__main__":
     main()
