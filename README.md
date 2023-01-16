@@ -23,3 +23,7 @@ For the full writeup, visit this link:
 
 6 epochs: 99% training accuracy, 99% testing accuracy
 
+
+6 epochs is not always consistent,
+with 8 epochs, was able to achieve 99% accuracy --> with these only the sideways snowmen
+were predicted as clouds. No other confusion happened.

@@ -29,9 +29,9 @@ def getTrainTestValData(fileLoc, test_size = 0.15, val_size = 0.15):
 
     return trainX, trainY, valX, valY, testX, testY
     
-def testNN_tf():
+def testNN_tf(snow=True):
     # test_size = 0.2
-    num_epoch = 6
+    num_epoch = 8
     BATCH_SIZE = 32
 
     primitiveFile = 'data/sphereConeCubeData.csv'
@@ -61,8 +61,9 @@ def testNN_tf():
 
     snowModel = 'snowModel/snowModel'
     shapeModel = 'shapeModel/shapeModel'
+    modelName = snowModel if snow else shapeModel
 
-    model.save_weights(snowModel)
+    model.save_weights(modelName)
 
     preds = model.predict(test_dataset.batch(2))
 
@@ -75,7 +76,7 @@ def visualizeMistakes(pred, real, data):
         predClass = str(tf.keras.backend.get_value(pred[i]))
         realClass = str(real[i])
         if predClass != realClass:
-            printShape(data[i], "images/pred_" + predClass + "_real_" + realClass + "_" + str(i) + ".png", realClass + " predicted as " + predClass)
+            printShape(data[i], "images/confusion/pred_" + predClass + "_real_" + realClass + "_" + str(i) + ".png", realClass + " predicted as " + predClass)
     return
 
 def visualizeModel(snow=True):
@@ -101,7 +102,7 @@ def visualizeModel(snow=True):
     figure.savefig('images/conf_mat_' + modelName.split('/')[-1] +'.png', dpi=400)
 
 def main():
-    # testNN_tf()
+    testNN_tf()
     visualizeModel()
 
 if __name__ == "__main__":
