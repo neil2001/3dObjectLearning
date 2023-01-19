@@ -20,32 +20,32 @@ class Regularizer(tf.keras.regularizers.Regularizer):
 
 
 class TNet_TF(tf.keras.Model):
-    def __init__(self, dims=3):
+    def __init__(self, dims=3, multiplier=1.0):
         super().__init__()
-        self.dim = dims
+        self.dim = int(dims)
 
         bias = tf.keras.initializers.Constant(np.eye(self.dim).flatten())
         reg = Regularizer(self.dim)
 
-        self.conv1 = tf.keras.layers.Conv1D(32, kernel_size=1, padding="valid")
+        self.conv1 = tf.keras.layers.Conv1D(32 * multiplier, kernel_size=1, padding="valid")
         self.bn1 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu1 = tf.keras.layers.Activation("relu")
 
-        self.conv2 = tf.keras.layers.Conv1D(64, kernel_size=1, padding="valid")
+        self.conv2 = tf.keras.layers.Conv1D(64 * multiplier, kernel_size=1, padding="valid")
         self.bn2 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu2 = tf.keras.layers.Activation("relu")
 
-        self.conv3 = tf.keras.layers.Conv1D(512,1)
+        self.conv3 = tf.keras.layers.Conv1D(512 * multiplier,1)
         self.bn3 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu3 = tf.keras.layers.Activation("relu")
 
         self.maxpool4 = tf.keras.layers.GlobalMaxPooling1D()
 
-        self.linear5 = tf.keras.layers.Dense(256)
+        self.linear5 = tf.keras.layers.Dense(256 * multiplier)
         self.bn5 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu5 = tf.keras.layers.Activation("relu")
 
-        self.linear6 = tf.keras.layers.Dense(128)
+        self.linear6 = tf.keras.layers.Dense(128 * multiplier)
         self.bn6 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu6 = tf.keras.layers.Activation("relu")
 
@@ -74,43 +74,43 @@ class TNet_TF(tf.keras.Model):
         return self.dotProd([inputs, features])
 
 class PointNet_TF(tf.keras.Model):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, multiplier = 1.0, tnet_mult = 1.0):
         super().__init__()
 
         self.batch_size = 32
-        self.num_classes = 3
+        self.num_classes = num_classes
         
-        self.tnet3 = TNet_TF()
+        self.tnet3 = TNet_TF(3, multiplier=tnet_mult)
 
-        self.conv1 = tf.keras.layers.Conv1D(32,1)
+        self.conv1 = tf.keras.layers.Conv1D(32 * multiplier,1)
         self.bn1 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu1 = tf.keras.layers.ReLU()
 
-        self.conv2 = tf.keras.layers.Conv1D(32,1)
+        self.conv2 = tf.keras.layers.Conv1D(32 * multiplier,1)
         self.bn2 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu2 = tf.keras.layers.ReLU()
 
-        self.tnet64 = TNet_TF(32)
+        self.tnet64 = TNet_TF(32 * multiplier, tnet_mult)
 
-        self.conv3 = tf.keras.layers.Conv1D(32, 1)
+        self.conv3 = tf.keras.layers.Conv1D(32 * multiplier, 1)
         self.bn3 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu3 = tf.keras.layers.ReLU()
 
-        self.conv4 = tf.keras.layers.Conv1D(64, 1)
+        self.conv4 = tf.keras.layers.Conv1D(64 * multiplier, 1)
         self.bn4 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu4 = tf.keras.layers.ReLU()
 
-        self.conv5 = tf.keras.layers.Conv1D(512,1)
+        self.conv5 = tf.keras.layers.Conv1D(512 * multiplier,1)
         self.bn5 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu5 = tf.keras.layers.ReLU()
 
         self.maxPool6 = tf.keras.layers.GlobalMaxPooling1D()
             
-        self.linear7 = tf.keras.layers.Dense(256)
+        self.linear7 = tf.keras.layers.Dense(256 * multiplier)
         self.bn7 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu7 = tf.keras.layers.ReLU()
 
-        self.linear8 = tf.keras.layers.Dense(128)
+        self.linear8 = tf.keras.layers.Dense(128 * multiplier)
         self.bn8 = tf.keras.layers.BatchNormalization(momentum=0.0)
         self.relu8 = tf.keras.layers.ReLU()
 
@@ -139,5 +139,6 @@ class PointNet_TF(tf.keras.Model):
         return x
 
     def accuracy(self, logits, labels):
+        print("IN ACCURACY, NUM CLASSES", self.num_classes)
         correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
         return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))

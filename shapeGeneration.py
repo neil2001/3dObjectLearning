@@ -46,7 +46,7 @@ def generateCircle2D(radius, zloc, n=200):
     points = np.zeros((n,3))
     for i in range(n):
         theta = np.random.uniform(0, 2*math.pi)
-        r = np.random.uniform(0, radius)
+        r = math.sqrt(np.random.uniform(0, radius**2))
         points[i] = np.array([r*math.cos(theta), r*math.sin(theta), zloc])
     return points
 
@@ -68,7 +68,7 @@ def generateCylinder(radius, height, n=500, baseN = 150):
     return points
 
 
-def generateSphere(radius, x=0, y=0, z=0, n=200, toPrint=False):
+def generateSphere(radius, x=0, y=0, z=0, n=500, toPrint=False):
     points = np.zeros((n, 3))
 
     translation_matrix = [
@@ -101,12 +101,12 @@ def generateSphere(radius, x=0, y=0, z=0, n=200, toPrint=False):
     np.random.shuffle(points)
     return points
 
-def generateCone(radius, height, x=0, y=0, z=0, baseN = 100, coneN = 200, toPrint = False):
+def generateCone(radius, height, x=0, y=0, z=0, baseN = 150, coneN = 350, toPrint = False):
     points = np.zeros((baseN + coneN, 3))
 
     for i in range(baseN):
         theta = np.random.uniform(0, 2*math.pi)
-        r = np.random.uniform(0, radius)
+        r = math.sqrt(np.random.uniform(0, radius**2))
         points[i] = np.array([r*math.cos(theta), r*math.sin(theta), 0])
 
     for i in range(coneN):
@@ -143,6 +143,29 @@ def generateShapeDataset(samples=1000, points=500, num_classes=3):
         data.append(cubeAsRow)
     df = pd.DataFrame(data)
     return df
+
+def generateShapesRandom(samples=2000, num_points=500):
+    data = []
+    funcs = [generateSphere, generateCone, generateCube, generateCylinder]
+    for i in range(samples):
+        objClass = random.randint(0,3)
+        func = funcs[objClass]
+        if objClass == 2:
+            points = func()
+        else:
+            rad = np.random.uniform(5, 15)
+            if objClass == 0:
+                points = func(rad)
+            else:
+                height = np.random.uniform(15,50)
+                points = func(rad, height)
+        pointsFlat = [objClass] + list(points[:num_points].flatten())
+        data.append(pointsFlat)
+
+        if i % 100 == 0:
+            print(str(i) + " shapes generated")
+
+    return pd.DataFrame(data)
 
 def set_axes_equal(ax):
     '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
@@ -186,20 +209,20 @@ def printShape(points, dest, title):
     plt.close()
 
 def main():
-    cylinder = generateCylinder(1,2, 1000, 250)
-    printShape(cylinder, "images/cylinder.png", "Example of a cylinder")
+    # cylinder = generateCylinder(1,2, 1000, 250)
+    # printShape(cylinder, "images/cylinder.png", "Example of a cylinder")
 
-    sphere = generateSphere(5, n=500)
-    printShape(sphere, "images/sphere.png", "Example of a sphere")
+    # sphere = generateSphere(5, n=500)
+    # printShape(sphere, "images/sphere.png", "Example of a sphere")
 
-    cone = generateCone(2, 6, baseN = 200, coneN = 300)
-    printShape(cone, "images/cone.png", "Example of a cone")
+    # cone = generateCone(2, 6, baseN = 200, coneN = 300)
+    # printShape(cone, "images/cone.png", "Example of a cone")
 
-    cube = generateCube()
-    printShape(cube, "images/cube.png", "Example of a cube")
+    # cube = generateCube()
+    # printShape(cube, "images/cube.png", "Example of a cube")
 
-    # shapes = generateShapeDataset(1500,500,3)
-    # shapes.to_csv('./sphereConeCubeData.csv')
+    shapes = generateShapesRandom()
+    shapes.to_csv('data/fourShapeData.csv')
 
 if __name__ == "__main__":
     main()

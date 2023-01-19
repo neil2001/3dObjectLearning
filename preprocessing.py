@@ -83,7 +83,7 @@ def transform(shapeMat):
 
     # return shapeMat
 
-def preprocess_tf(file_loc, num_classes):
+def preprocess_tf(file_loc, num_points=500):
     shapeDataset = pd.read_csv(file_loc, index_col=0)
     shapeDataset = shapeDataset.sample(frac=1).reset_index(drop=True)
     numSamples = len(shapeDataset)
@@ -91,11 +91,11 @@ def preprocess_tf(file_loc, num_classes):
     # print(shapeDataset.head())
     labels = np.array(shapeDataset['0']).flatten() # labels
     shapeCoords = shapeDataset.drop(columns=['0'])
-    coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,500,3))
+    coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,num_points,3))
     transformed = np.array(list(map(transform, list(coordsAsNumpy))))
     
     # one_hot_labels = tf.one_hot(labels, num_classes)
-    return transformed, labels #one_hot_labels
+    return transformed, labels 
 
 def preprocess(file_loc, batch_size, test_size):
     shapeDataset = pd.read_csv(file_loc, index_col=0)
@@ -119,8 +119,12 @@ def preprocess(file_loc, batch_size, test_size):
     return dataloader_train, dataloader_test
 
 def main():
-    snowData, snowLabels = preprocess_tf('/Users/neilxu/Documents/3dObjectLearning/data/snowDataset.csv', 3)
-    printShape(snowData[0])
+    # snowData, snowLabels = preprocess_tf('/Users/neilxu/Documents/3dObjectLearning/data/snowDataset.csv', 3)
+    # printShape(snowData[0])
+
+    shapeData, shapeLabels = preprocess_tf('data/fourShapeData.csv')
+    printShape(shapeData[0], "images/testShape1.png", "test primitive " + str(shapeLabels[0]))
+    printShape(shapeData[10], "images/testShape2.png", "test primitive " + str(shapeLabels[10]))
     return
 
 if __name__ == "__main__":
