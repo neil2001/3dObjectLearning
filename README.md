@@ -6,6 +6,14 @@ You may need to create the following directories:
 
 `data`, `images/confusion_shapes`, `images/confusion_snow`, `shapeModel`, `snowModel`
 
+To create the shapes dataset, run:
+
+`python3 shapeGeneration.py`
+
+To create the snow dataset, run:
+
+`python3 snowGeneration.py`
+
 To train and save the model using the snow dataset, run:
 
 `python3 main_tf.py snow train`

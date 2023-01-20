@@ -232,6 +232,9 @@ def main():
     # cube = generateCube()
     # printShape(cube, "images/cube.png", "Example of a cube")
 
+    threeShapes = generateShapeDataset(1500)
+    threeShapes.to_csv('data/sphereConeCubeData.csv')
+
     shapes = generateShapesRandom()
     shapes.to_csv('data/fourShapeData.csv')
 
