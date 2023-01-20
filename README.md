@@ -2,6 +2,10 @@
 For the full writeup, visit this link: https://docs.google.com/document/d/1UVj50E6Kaw9PEmVhHH8ppt3W_tMlm4vP-7bubc3wrSo/edit?usp=sharing
 
 # Usage:
+You may need to create the following directories:
+
+`data`, `images/confusion_shapes`, `images/confusion_snow`, `shapeModel`, `snowModel`
+
 To train and save the model using the snow dataset, run:
 
 `python3 main_tf.py snow train`
