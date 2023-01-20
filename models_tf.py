@@ -18,7 +18,6 @@ class Regularizer(tf.keras.regularizers.Regularizer):
         AAt = tf.reshape(AAt, (-1, self.dim, self.dim))
         return tf.reduce_sum(self.regVal * tf.square(AAt - self.idMat))
 
-
 class TNet_TF(tf.keras.Model):
     def __init__(self, dims=3, multiplier=1.0):
         super().__init__()
@@ -139,6 +138,6 @@ class PointNet_TF(tf.keras.Model):
         return x
 
     def accuracy(self, logits, labels):
-        print("IN ACCURACY, NUM CLASSES", self.num_classes)
+        # print("IN ACCURACY, NUM CLASSES", self.num_classes)
         correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
         return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))

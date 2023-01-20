@@ -42,7 +42,7 @@ def testNN_tf(snow=True):
     '''
     classes = 3 if snow else 4
     # test_size = 0.2
-    num_epoch = 6
+    num_epoch = 4
     BATCH_SIZE = 128
 
     primitiveFile = 'data/fourShapeData.csv'
@@ -73,7 +73,7 @@ def testNN_tf(snow=True):
     shapeModel = 'shapeModel/shapeModel'
     modelName = snowModel if snow else shapeModel
 
-    model.save_weights(modelName)
+    # model.save_weights(modelName)
 
     preds = model.predict(test_dataset.batch(2))
 

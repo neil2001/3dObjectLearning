@@ -1,5 +1,9 @@
 # 3dObjectLearning
-For the full writeup, visit this link: 
+For the full writeup, visit this link: https://docs.google.com/document/d/1UVj50E6Kaw9PEmVhHH8ppt3W_tMlm4vP-7bubc3wrSo/edit?usp=sharing
+
+# Usage:
+
+
 
 # Epochs vs. Accuracy on Tensorflow Model with 3 simple objects (cone, sphere, cube)
 1 epoch: 87% training accuracy, 68% testing accuracy
