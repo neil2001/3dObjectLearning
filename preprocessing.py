@@ -12,7 +12,6 @@ from shapeGeneration import printShape
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-# import tensorflow as tf
 
 class ShapeDataset(Dataset):
     def __init__(self, X, Y):
@@ -28,27 +27,20 @@ class ShapeDataset(Dataset):
 
 # Applying random rotation and translation
 def normalizeScale(shapeMat):
-    # return shapeMat
+    '''
+    normalizes an object along the axis with the largest scale so that it 
+    fits within the 0-1 unit cube
+    '''
     minCoord = shapeMat.min(axis=0)
     maxCoord = shapeMat.max(axis=0)
-    # print(minCoord, maxCoord)
-    # axSizes = 1/(maxCoord - minCoord)
     scaleVal = max(maxCoord-minCoord)
     scaled = shapeMat / scaleVal
-    # print(axSizes)
-    # scaleMat = np.array([
-    #     [axSizes[0],0,0],
-    #     [0,axSizes[1],0,],
-    #     [0,0,axSizes[2]]
-    #     ])
-    # scaled = np.matmul(shapeMat, scaleMat)
     return scaled
 
-    # minCoord = shapeMat.min(axis=0)
-    # shapeMat = (shapeMat - minCoord)/(shapeMat.max(axis=0) - minCoord)
-    # return shapeMat
-
 def randomRotation(shapeMat):
+    '''
+    adds random rotation on a random axis using rodrigues formula to an object
+    '''
     rotation_angle = np.random.uniform(0,1) * 2 * math.pi
     rotation_axis = np.random.uniform(-1, 1, 3)
     rotation_axis = rotation_axis / np.linalg.norm(rotation_axis)
@@ -68,36 +60,41 @@ def randomRotation(shapeMat):
     return rotated_shape
 
 def randomTranslate(shapeMat):
-    # r,c = shapeMat.shape
+    '''
+    adds random noise to each point in an object
+    '''
     noise = np.random.uniform(-1,1, shapeMat.shape) * 0.025
     shapeMat += noise
     return shapeMat
 
 def transform(shapeMat):
+    '''
+    applies the above transformations to a given shape
+    '''
     normalized = normalizeScale(shapeMat)
     rotated = randomRotation(normalized)
     translated = randomTranslate(rotated)
-    # normalized = normalizeScale(shapeMat)
-    # print(normalized)
     return translated
 
-    # return shapeMat
-
 def preprocess_tf(file_loc, num_points=500):
+    '''
+    preprocessing step for tensorflow
+    '''
     shapeDataset = pd.read_csv(file_loc, index_col=0)
     shapeDataset = shapeDataset.sample(frac=1).reset_index(drop=True)
     numSamples = len(shapeDataset)
     print("number of samples", numSamples)
-    # print(shapeDataset.head())
     labels = np.array(shapeDataset['0']).flatten() # labels
     shapeCoords = shapeDataset.drop(columns=['0'])
     coordsAsNumpy = shapeCoords.to_numpy().reshape((numSamples,num_points,3))
     transformed = np.array(list(map(transform, list(coordsAsNumpy))))
     
-    # one_hot_labels = tf.one_hot(labels, num_classes)
     return transformed, labels 
 
 def preprocess(file_loc, batch_size, test_size):
+    '''
+    (depracated) preprocessing step for pytorch model
+    '''
     shapeDataset = pd.read_csv(file_loc, index_col=0)
     numSamples = len(shapeDataset)
     print("number of samples", numSamples)

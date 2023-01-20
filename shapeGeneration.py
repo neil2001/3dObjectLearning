@@ -13,24 +13,12 @@ class Ball():
         self.pos = loc
         self.points = pts
 
-class Box():
-    def __init__(self, l, w, h, pos, pts=[]):
-        self.length = l
-        self.width = w
-        self.height = h
-        self.x = pos[0]
-        self.y = pos[1]
-        self.z = pos[2]
-        self.pos = pos
-        self.points = pts
-
 def generateCube(n=500, toPrint=False):
-#     Choose an axis (x,y,z), a, represented as (0,1,2) at random
-# Choose side, s, either (-0.5 or 0.5) at random
-# Choose three values, coord, between (-0.5 and 0.5)
-# Set coord[a] to s
-# Repeat n times to sample the unit cube centered at 0,0
-
+    # Choose an axis (x,y,z), a, represented as (0,1,2) at random
+    # Choose side, s, either (-0.5 or 0.5) at random
+    # Choose three values, coord, between (-0.5 and 0.5)
+    # Set coord[a] to s
+    # Repeat n times to sample the unit cube centered at 0,0
     points = np.zeros((n,3))
     for i in range(n):
         axis = random.randint(0, 2)
@@ -38,11 +26,14 @@ def generateCube(n=500, toPrint=False):
         coord = np.random.uniform(-0.5, 0.5, 3)
         coord[axis] = side
         points[i] = coord
-    # print(points)
     np.random.shuffle(points)
     return points
 
 def generateCircle2D(radius, zloc, n=200):
+    '''
+    for n points, choose a random angle and random radius, compute the 
+    rectangular coordinates
+    '''
     points = np.zeros((n,3))
     for i in range(n):
         theta = np.random.uniform(0, 2*math.pi)
@@ -69,6 +60,10 @@ def generateCylinder(radius, height, n=500, baseN = 150):
 
 
 def generateSphere(radius, x=0, y=0, z=0, n=500, toPrint=False):
+    '''
+    choose a random point in the [-1,1] cube. Normalize this point such that it 
+    has length 1. Multiply by radius to yield a point on the circle
+    '''
     points = np.zeros((n, 3))
 
     translation_matrix = [
@@ -102,6 +97,11 @@ def generateSphere(radius, x=0, y=0, z=0, n=500, toPrint=False):
     return points
 
 def generateCone(radius, height, x=0, y=0, z=0, baseN = 150, coneN = 350, toPrint = False):
+    '''
+    sample a 2D circle forming the base. Choose a random height between [0,H].
+    Choose a random angle, compute the radius at that height, conver to 
+    rectangular coordinates
+    '''
     points = np.zeros((baseN + coneN, 3))
 
     for i in range(baseN):
@@ -128,6 +128,9 @@ def generateCone(radius, height, x=0, y=0, z=0, baseN = 150, coneN = 350, toPrin
     return points
   
 def generateShapeDataset(samples=1000, points=500, num_classes=3):
+    '''
+    generates some number of sample shapes (equal samples for each)
+    '''
     data = []
     for i in range(samples//num_classes):
         newSphere = generateSphere(np.random.uniform(1, 50), 0,0,0, n=500)
@@ -145,6 +148,9 @@ def generateShapeDataset(samples=1000, points=500, num_classes=3):
     return df
 
 def generateShapesRandom(samples=2000, num_points=500):
+    '''
+    generates some number of samples of the four shapes from random
+    '''
     data = []
     funcs = [generateSphere, generateCone, generateCube, generateCylinder]
     for i in range(samples):
@@ -168,7 +174,9 @@ def generateShapesRandom(samples=2000, num_points=500):
     return pd.DataFrame(data)
 
 def set_axes_equal(ax):
-    '''Make axes of 3D plot have equal scale so that spheres appear as spheres,
+    '''
+    Taken from stack overflow 
+    Make axes of 3D plot have equal scale so that spheres appear as spheres,
     cubes as cubes, etc..  This is one possible solution to Matplotlib's
     ax.set_aspect('equal') and ax.axis('equal') not working for 3D.
 
@@ -196,6 +204,9 @@ def set_axes_equal(ax):
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
 
 def printShape(points, dest, title):
+    '''
+    visualizes the shape and saves it to a png (dest)
+    '''
     xLocs = [pt[0] for pt in points]
     yLocs = [pt[1] for pt in points]
     zLocs = [pt[2] for pt in points]

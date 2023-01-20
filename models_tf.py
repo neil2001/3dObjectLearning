@@ -6,6 +6,9 @@ import random
 import math
 
 class Regularizer(tf.keras.regularizers.Regularizer):
+    '''
+    implementation of the regularizer described in the pointnet paper
+    '''
     def __init__(self, dims, l2Val=0.001):
         self.dim = dims
         self.regVal = l2Val
@@ -13,12 +16,14 @@ class Regularizer(tf.keras.regularizers.Regularizer):
 
     def __call__(self, x): 
         A = tf.reshape(x, (-1, self.dim, self.dim))
-        # print(A, A.shape)
         AAt = tf.tensordot(A, A, axes=(2, 2))
         AAt = tf.reshape(AAt, (-1, self.dim, self.dim))
         return tf.reduce_sum(self.regVal * tf.square(AAt - self.idMat))
 
 class TNet_TF(tf.keras.Model):
+    '''
+    implementation of the transformation network to learn object rotation matrices
+    '''
     def __init__(self, dims=3, multiplier=1.0):
         super().__init__()
         self.dim = int(dims)
@@ -73,6 +78,9 @@ class TNet_TF(tf.keras.Model):
         return self.dotProd([inputs, features])
 
 class PointNet_TF(tf.keras.Model):
+    '''
+    implementation of pointnet
+    '''
     def __init__(self, num_classes, multiplier = 1.0, tnet_mult = 1.0):
         super().__init__()
 
@@ -138,6 +146,5 @@ class PointNet_TF(tf.keras.Model):
         return x
 
     def accuracy(self, logits, labels):
-        # print("IN ACCURACY, NUM CLASSES", self.num_classes)
         correct_predictions = tf.equal(tf.argmax(logits, 1), labels)
         return tf.reduce_mean(tf.cast(correct_predictions, tf.float32))

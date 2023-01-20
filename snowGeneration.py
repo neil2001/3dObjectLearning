@@ -7,14 +7,23 @@ import math
 from shapeGeneration import generateCone, generateCylinder, generateSphere, printShape, Ball
 
 def mergeSpheres(s1, s2):
+    '''
+    merges two spheres by taking the union-intersection of the two spheres
+    '''
     s2.points = np.array(list(filter(lambda x: euclideanDist(s1.pos, x) > s1.radius, s2.points)))
     s1.points = np.array(list(filter(lambda x: euclideanDist(s2.pos, x) > s2.radius, s1.points)))
 
 def euclideanDist(p1, p2):
+    '''
+    function for computing euclidean distance between 2 3D points
+    '''
     dist = np.linalg.norm(p2-p1)
     return dist
 
 def translateObj(points, x, y, z):
+    '''
+    translates a 3D point given x, y, z amount
+    '''
     translation_matrix = [
         [1, 0, 0, x],
         [0, 1, 0, y],
@@ -27,6 +36,9 @@ def translateObj(points, x, y, z):
     return toNumpy
 
 def generateIceCream():
+    '''
+    generates an ice cream cone by taking some number of spheres and a cone
+    '''
     coneRad = np.random.uniform(1,2)
     cone = generateCone(
         coneRad,
@@ -63,6 +75,9 @@ def generateIceCream():
     return coords
 
 def generateHat():
+    '''
+    generates a snowman's hat by sampling two cylinders
+    '''
     brimHeight = np.random.uniform(0.2,0.4)
     hatHeight = np.random.uniform(1.5,2.25)
 
@@ -72,6 +87,9 @@ def generateHat():
     return np.concatenate((brim, hat))
 
 def generateSnowMan():
+    '''
+    generates a snowman by sampling three spheres and a hat
+    '''
     ballCount = 3 #random.randint(2,3)
     ballObjs = []
     for i in range(ballCount):
@@ -98,8 +116,10 @@ def generateSnowMan():
     np.random.shuffle(points)
     return points
 
-
 def generateCloud():
+    '''
+    generates a cloud by sampling three spheres
+    '''
     centerRad = np.random.uniform(3,5)
     center = Ball(centerRad, np.array([0,0,0]), generateSphere(centerRad, n=800))
 
@@ -119,6 +139,9 @@ def generateCloud():
     return points
 
 def generateSnowDataset(samples=1500, num_points=500):
+    '''
+    generates randomly some number of uniform samples of these objects
+    '''
     funcs = [generateCloud, generateIceCream, generateSnowMan]
     data = []
     for i in range(samples):
